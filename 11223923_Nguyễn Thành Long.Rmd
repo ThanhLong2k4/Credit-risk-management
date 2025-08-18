@@ -1,0 +1,151 @@
+---
+title: "Untitled"
+author: "Nguyễn Thành Long"
+date: "2025-04-29"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+library(tidyverse)
+library(dplyr)
+library(readxl)
+library(ModelMetrics)
+library(caret)
+library(ggcorrplot)
+library(corrplot)
+```
+```{r}
+library(readxl)
+data = read_csv("C:/Users/DELL/Documents/QUẢN TRỊ RRĐL/Credit Score Classification Dataset.csv")
+View(data)
+
+data$default <- ifelse(data$Credit_Score == "Low", 1, 0)
+
+
+```
+```{r}
+table(data$default)
+prop.table(table(data$default))
+```
+```{r}
+# xu ly mat can bang du lieu
+# phuong phap oversampling ket hop under sampling
+library(ROSE)
+dat_balanced = ovun.sample( default ~., data =data, method = "both", p=0.3, seed = 123)$data
+
+table(dat_balanced$default)
+prop.table(table(dat_balanced$default))
+```
+
+```{r}
+# Chia tập dữ liêu train và test: 70% và 30% 
+set.seed(1000)
+ind = sample(2, nrow(dat_balanced), replace = TRUE, prob = c(0.7, 0.3))
+train.data = dat_balanced [ind == 1, ]
+test.data = dat_balanced [ind == 2, ]
+```
+
+```{r}
+library(dplyr)
+# chon bien tu IV
+IV <- Information::create_infotables(data = train.data, y = "default", parallel = FALSE)
+print(IV$Summary)
+```
+```{r}
+# Lay cac bien co IV 0.02 < IV 
+vars_selected <- IV$Summary %>% as.data.frame %>% 
+                                     subset(IV>0.02) %>%pull(1)
+# tao du lieu sau khi luoc bo bien
+dat_reg = train.data %>%
+  select(all_of(vars_selected)) %>%
+  mutate(default = train.data$default)
+
+head(dat_reg)
+```
+```{r}
+# bin cac bien theo WOE
+library(scorecard)
+bins <- woebin(dat_reg, y = "default")
+woebin_plot(bins)
+```
+```{r}
+# chay mo hinh Logit
+train.data_woe <- woebin_ply(dat_reg, bins)
+logit.model <- glm(default ~., family = binomial(link = 'logit'), data = train.data_woe)
+summary(logit.model)
+```
+```{r}
+# Loc bien mo hinh Logit theo stepwise
+logit.step <- step(logit.model, direction = "backward", trace = 0)
+summary(logit.step)
+```
+```{r}
+#  ConfusionMatrix 
+train.prob <- predict(logit.step, type = "response")
+train.pred <- ifelse(train.prob > .5, "1", "0")
+table.train<-table(train.pred, dat_reg$default)
+table.train
+```
+```{r}
+confusionMatrix.train<-prop.table(table.train)
+confusionMatrix.train
+```
+# Tập TEST
+```{r}
+test.data_woe <- woebin_ply(test.data, bins)
+
+head(test.data_woe)
+```
+```{r}
+# ma tran sai lam
+test.pred.prob <- predict(logit.model, test.data_woe, type = 'response')
+test.pred<- as.factor(ifelse(test.pred.prob > 0.5, 1, 0))
+table.test<-table(test.pred, test.data$default)
+table.test
+```
+```{r}
+confusionMatrix.test<-prop.table(table.test)
+confusionMatrix.test
+```
+```{r}
+# ve duong cong ROC
+library(ROCR)
+# Logistic Regression ROC curve
+roc.pred <- prediction(predictions = test.pred.prob, labels = test.data$default)
+roc.perf <- performance(roc.pred, measure = "tpr", x.measure = "fpr")
+# Tính chỉ số AUROC
+AUROC_value <- roc.perf@y.values[[1]]
+auc <- as.numeric(performance(roc.pred, measure = "auc")@y.values)
+plot(roc.perf, main = "ROC Curve for credit risk Prediction Approaches", col = 2, lwd = 2)
+abline(a = 0, b = 1, lwd = 3, lty = 2, col = 1)
+```
+```{r}
+# Tính chỉ số AUROC và GINI
+auc <- as.numeric(performance(roc.pred, measure = "auc")@y.values)
+auc
+
+gini <- 2*auc - 1
+gini
+```
+# Mô hình cây
+```{r}
+library(rpart)
+detree = rpart(default ~ ., data = train.data, method = "class", control = rpart.control(cp = 0))
+```
+```{r}
+#Dự báo tập train
+predTree1 = predict(detree, train.data, type='class')
+train.data$default = as.factor(train.data$default)
+caret::confusionMatrix(predTree1, train.data$default, positive = "1")
+```
+```{r}
+#Dự báo trên tập test
+predTree2 = predict(detree, test.data, type='class')
+test.data$default = as.factor(test.data$default)
+caret::confusionMatrix(predTree2, test.data$default, positive = "1")
+```
+
+
