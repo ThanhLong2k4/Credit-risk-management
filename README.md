@@ -1,5 +1,5 @@
 # Credit-risk-management
- Dự án này tập trung vào việc xây dựng các mô hình dự đoán khả năng khách hàng vỡ nợ, bao gồm mô hình scorecard truyền thống và các mô hình machine learning hiện đại như XGBoost và LightGBM. Dự án bao gồm các bước khám phá dữ liệu, xử lý biến, lựa chọn đặc trưng và đánh giá mô hình.
+ Dự án này tập trung vào việc xây dựng các mô hình dự đoán khả năng khách hàng vỡ nợ, bao gồm mô hình scorecard truyền thống . Dự án bao gồm các bước khám phá dữ liệu, xử lý biến, lựa chọn đặc trưng và đánh giá mô hình.
 
 ## 🔍 Khám phá Dữ liệu (EDA) sử dụng R
 
