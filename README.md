@@ -4,8 +4,6 @@
 ## 🔍 Khám phá Dữ liệu (EDA) sử dụng R
 
 -Tập dữ liệu được lấy trên Kaggle
-- Thực hiện phân tích đơn biến (univariate) và phân tích hai biến (bivariate).
-- Vẽ biểu đồ phân phối và heatmap tương quan giữa các biến.
 - Để dữ liệu sử dụng không bị mất cân bằng, dữ liệu được xử lý bằng phương pháp oversampling và undersampling
 
 ## 🧮 Xây dựng Mô hình Scorecard Tín dụng
