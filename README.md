@@ -8,7 +8,8 @@
 
 ## 🧮 Xây dựng Mô hình Scorecard Tín dụng
 
-- Thực hiện **binning** các biến đầu vào.
+- Tính IV cho từng biến lọc lấy IV > 0.02 
+- Thực hiện **binning** các biến vừa lấy.
 - Tính **WOE (Weight of Evidence)** cho các bin và sử dụng WOE làm đầu vào cho mô hình.
 - Huấn luyện mô hình **logistic regression** và **Random Tree** trên các biến đã WOE.
 - Dựa vào các chỉ số Accuracy cho thấy độ chính xác của mô hình 
